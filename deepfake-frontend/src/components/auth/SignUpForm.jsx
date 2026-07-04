@@ -1,13 +1,9 @@
-// src/components/auth/SignUpForm.jsx
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FiEye, FiEyeOff, FiMail, FiLock, FiUser } from "react-icons/fi";
 import Button from "../common/Button";
 import { useAuth } from "../../hooks/useAuth";
 import { EMAIL_REGEX } from "../../utils/constants";
-
-
-
 
 export default function SignUpForm() {
   const { signup, isLoading } = useAuth();
@@ -52,7 +48,7 @@ export default function SignUpForm() {
         email: form.email,
         password: form.password,
       });
-      navigate("/dashboard");
+      navigate("/dashboard", { replace: true });
     } catch (err) {
       setFormError(err.message || "Something went wrong. Try again.");
     }
@@ -197,6 +193,4 @@ export default function SignUpForm() {
       </p>
     </form>
   );
-
-  
 }

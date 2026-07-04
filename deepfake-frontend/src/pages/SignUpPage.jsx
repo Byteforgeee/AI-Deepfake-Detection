@@ -1,10 +1,29 @@
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { FiShield } from "react-icons/fi";
 import SignUpForm from "../components/auth/SignUpForm";
+import { useAuth } from "../hooks/useAuth";
 
 export default function SignUpPage() {
+  const { isAuthenticated, isInitializing } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!isInitializing && isAuthenticated) {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [isAuthenticated, isInitializing, navigate]);
+
+  if (isInitializing) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-base-950">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-verify-400 border-t-transparent" />
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-screen bg-base-950">
-      {/* Brand / signature panel — hidden on small screens */}
       <div className="relative hidden w-1/2 overflow-hidden border-r border-base-700 lg:flex lg:flex-col lg:justify-between lg:p-12 grid-texture">
         <div className="absolute inset-0 bg-gradient-to-br from-base-950 via-base-950/95 to-verify-900/10" />
 
@@ -31,7 +50,6 @@ export default function SignUpPage() {
         </div>
       </div>
 
-      {/* Auth panel */}
       <div className="flex w-full flex-col justify-center px-6 py-12 sm:px-12 lg:w-1/2 lg:px-20">
         <div className="mx-auto w-full max-w-sm">
           <div className="mb-8 flex items-center gap-2 font-display text-lg font-semibold text-ink-100 lg:hidden">
@@ -53,17 +71,12 @@ export default function SignUpPage() {
   );
 }
 
-/**
- * Signature element: a face-frame outline with a sweeping scan line,
- * standing in for the app's core action — verifying a face/voice signal.
- */
 function ScanMark() {
   return (
     <div className="relative flex h-64 w-64 items-center justify-center">
       <div className="absolute inset-0 rounded-3xl border border-base-600" />
       <div className="absolute inset-4 rounded-2xl border border-dashed border-base-600" />
 
-      {/* corner brackets */}
       {[
         "left-2 top-2 border-l border-t",
         "right-2 top-2 border-r border-t",
@@ -75,7 +88,6 @@ function ScanMark() {
 
       <FiShield className="relative z-10 text-5xl text-ink-700" />
 
-      {/* sweeping scan line */}
       <div className="absolute inset-4 overflow-hidden rounded-2xl">
         <div className="h-8 w-full animate-scan bg-gradient-to-b from-transparent via-verify-500/40 to-transparent" />
       </div>

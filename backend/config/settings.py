@@ -198,3 +198,12 @@ SIMPLE_JWT = {
 # ==========================
 
 AUTH_USER_MODEL = 'accounts.User'
+
+# Media files (uploaded files)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+# Ensure CORS allows your frontend
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+]

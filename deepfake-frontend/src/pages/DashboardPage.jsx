@@ -1,9 +1,60 @@
+import { useState, useEffect } from 'react';
 import { useAuth } from "../hooks/useAuth";
+import { useFileUpload } from "../hooks/useFileUpload";
 import Button from "../components/common/Button";
+import UploadZone from "../components/upload/UploadZone";
+import FilePreview from "../components/upload/FilePreview";
+import UploadProgress from "../components/upload/UploadProgress";
+import ScanningStatus from "../components/upload/ScanningStatus";
+import HistoryList from "../components/upload/HistoryList";
+import { getHistory } from "../api/analysisApi";
 import { FiUploadCloud, FiClock, FiLogOut } from "react-icons/fi";
 
 export default function DashboardPage() {
   const { user, logout } = useAuth();
+  const {
+    file,
+    uploadProgress,
+    analysisStatus,
+    analysisResult,
+    isUploading,
+    isScanning,
+    error,
+    currentStepIndex,
+    upload,
+    reset,
+  } = useFileUpload();
+
+  const [activeTab, setActiveTab] = useState('upload');
+  const [stats, setStats] = useState({ uploads: 0, analyses: 0, detections: 0 });
+
+  const fetchStats = async () => {
+    try {
+      const history = await getHistory();
+      setStats({
+        uploads: history.length,
+        analyses: history.filter(h => h.status === 'completed').length,
+        detections: history.filter(h => h.status === 'completed' && h.result).length,
+      });
+    } catch (err) {
+      // ignore
+    }
+  };
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  const handleFileAccepted = (acceptedFile) => {
+    upload(acceptedFile);
+  };
+
+  // Refresh stats after upload completes
+  useEffect(() => {
+    if (analysisStatus === 'completed' || analysisStatus === 'failed') {
+      fetchStats();
+    }
+  }, [analysisStatus]);
 
   return (
     <div className="min-h-screen bg-base-950">
@@ -31,7 +82,77 @@ export default function DashboardPage() {
           </Button>
         </div>
 
-        {/* Stats / Quick actions */}
+        {/* Tabs */}
+        <div className="mt-8 flex gap-2 border-b border-base-700">
+          <button
+            onClick={() => setActiveTab('upload')}
+            className={`px-4 py-2 text-sm font-medium transition-colors ${
+              activeTab === 'upload'
+                ? 'border-b-2 border-verify-400 text-ink-100'
+                : 'text-ink-500 hover:text-ink-300'
+            }`}
+          >
+            <FiUploadCloud className="inline mr-2" />
+            New Analysis
+          </button>
+          <button
+            onClick={() => setActiveTab('history')}
+            className={`px-4 py-2 text-sm font-medium transition-colors ${
+              activeTab === 'history'
+                ? 'border-b-2 border-verify-400 text-ink-100'
+                : 'text-ink-500 hover:text-ink-300'
+            }`}
+          >
+            <FiClock className="inline mr-2" />
+            History
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="mt-8">
+          {activeTab === 'upload' && (
+            <div className="space-y-6">
+              {!file && (
+                <UploadZone
+                  onFileAccepted={handleFileAccepted}
+                  isUploading={isUploading || isScanning}
+                />
+              )}
+
+              {file && (
+                <FilePreview
+                  file={file}
+                  onRemove={reset}
+                />
+              )}
+
+              {isUploading && uploadProgress > 0 && uploadProgress < 100 && (
+                <UploadProgress progress={uploadProgress} />
+              )}
+
+              {(isScanning || analysisStatus === 'completed' || analysisStatus === 'failed') && (
+                <ScanningStatus
+                  currentStepIndex={currentStepIndex}
+                  status={analysisStatus}
+                  result={analysisResult}
+                  error={error}
+                />
+              )}
+
+              {analysisStatus === 'completed' && (
+                <Button variant="ghost" onClick={reset} className="mt-4">
+                  Start new analysis
+                </Button>
+              )}
+            </div>
+          )}
+
+          {activeTab === 'history' && (
+            <HistoryList />
+          )}
+        </div>
+
+        {/* Stats */}
         <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           <div className="rounded-xl border border-base-700 bg-base-800/50 p-6 transition-colors hover:border-base-600">
             <div className="flex items-center gap-3">
@@ -39,7 +160,7 @@ export default function DashboardPage() {
                 <FiUploadCloud className="text-verify-400" size={20} />
               </div>
               <div>
-                <p className="text-2xl font-semibold text-ink-100">0</p>
+                <p className="text-2xl font-semibold text-ink-100">{stats.uploads}</p>
                 <p className="text-sm text-ink-500">Uploads</p>
               </div>
             </div>
@@ -51,7 +172,7 @@ export default function DashboardPage() {
                 <FiClock className="text-verify-400" size={20} />
               </div>
               <div>
-                <p className="text-2xl font-semibold text-ink-100">0</p>
+                <p className="text-2xl font-semibold text-ink-100">{stats.analyses}</p>
                 <p className="text-sm text-ink-500">Analyses</p>
               </div>
             </div>
@@ -63,37 +184,10 @@ export default function DashboardPage() {
                 <div className="h-5 w-5 rounded-full border-2 border-verify-400" />
               </div>
               <div>
-                <p className="text-2xl font-semibold text-ink-100">0</p>
+                <p className="text-2xl font-semibold text-ink-100">{stats.detections}</p>
                 <p className="text-sm text-ink-500">Detections</p>
               </div>
             </div>
-          </div>
-        </div>
-
-        {/* Main content placeholder */}
-        <div className="mt-8 grid gap-6 lg:grid-cols-2">
-          <div className="rounded-xl border border-base-700 bg-base-800/50 p-6">
-            <h3 className="font-display text-lg font-semibold text-ink-100">
-              Start a new analysis
-            </h3>
-            <p className="mt-2 text-sm text-ink-500">
-              Upload a video to detect deepfakes using visual and audio analysis.
-            </p>
-            <Button variant="primary" className="mt-4">
-              Upload video
-            </Button>
-          </div>
-
-          <div className="rounded-xl border border-base-700 bg-base-800/50 p-6">
-            <h3 className="font-display text-lg font-semibold text-ink-100">
-              Recent activity
-            </h3>
-            <p className="mt-2 text-sm text-ink-500">
-              Your recent analyses will appear here.
-            </p>
-            <Button variant="ghost" className="mt-4">
-              View history
-            </Button>
           </div>
         </div>
 

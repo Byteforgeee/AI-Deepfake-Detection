@@ -36,7 +36,7 @@ export default function LoginForm() {
 
     try {
       await login(form);
-      navigate("/dashboard");
+      navigate("/dashboard", { replace: true });
     } catch (err) {
       setFormError(err.message || "Something went wrong. Try again.");
     }
