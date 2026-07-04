@@ -1,37 +1,75 @@
 import axiosInstance from "./axiosInstance";
-import { ENDPOINTS } from "../utils/constants";
+import { ENDPOINTS, TOKEN_STORAGE_KEY } from "../utils/constants";
 
-// --- MOCK MODE ---
-// Backend isn't ready yet, so these simulate network latency and return
-// a shape identical to what Express/JWT will eventually send back.
-// Swap the body of each function for the commented axios call when ready.
-const MOCK_DELAY = 700;
-const MOCK_USER = { id: "u_001", fullName: "Lalit Nath", email: "demo@dfd.app" };
-
-const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const extractErrorMessage = (error) => {
+  if (error.response && error.response.data) {
+    const data = error.response.data;
+    if (typeof data === 'object') {
+      if (data.non_field_errors) return data.non_field_errors.join(' ');
+      for (const key in data) {
+        if (Array.isArray(data[key])) {
+          return `${key}: ${data[key].join(' ')}`;
+        }
+        if (typeof data[key] === 'string') return data[key];
+      }
+    }
+    if (typeof data === 'string') return data;
+  }
+  return error.message || 'Request failed';
+};
 
 export const login = async ({ email, password }) => {
-  // return axiosInstance.post(ENDPOINTS.LOGIN, { email, password }).then((res) => res.data);
+  try {
+    const response = await axiosInstance.post(ENDPOINTS.LOGIN, { email, password });
+    const { access, refresh } = response.data;
 
-  await delay(MOCK_DELAY);
-  if (email === "demo@dfd.app" && password === "password123") {
-    return { user: MOCK_USER, token: "mock.jwt.token" };
+    localStorage.setItem(TOKEN_STORAGE_KEY, access);
+    localStorage.setItem('refresh_token', refresh);
+
+    // Fetch user info from /me
+    const userResponse = await axiosInstance.get(ENDPOINTS.ME);
+    // The view returns the user object directly – NOT wrapped in a 'user' key
+    return { user: userResponse.data, token: access };
+  } catch (error) {
+    if (error.response?.status === 401) {
+      const err = new Error('Invalid email or password');
+      err.code = 'INVALID_CREDENTIALS';
+      throw err;
+    }
+    throw new Error(extractErrorMessage(error));
   }
-  const error = new Error("Invalid email or password");
-  error.code = "INVALID_CREDENTIALS";
-  throw error;
 };
 
 export const signup = async ({ fullName, email, password }) => {
-  // return axiosInstance.post(ENDPOINTS.SIGNUP, { fullName, email, password }).then((res) => res.data);
+  try {
+    const nameParts = fullName.split(' ');
+    const first_name = nameParts[0] || '';
+    const last_name = nameParts.slice(1).join(' ') || '';
 
-  await delay(MOCK_DELAY);
-  return { user: { id: "u_new", fullName, email }, token: "mock.jwt.token" };
+    await axiosInstance.post(ENDPOINTS.REGISTER, {
+      email,
+      password,
+      first_name,
+      last_name,
+    });
+
+    // Auto-login after successful registration
+    return login({ email, password });
+  } catch (error) {
+    if (error.response?.status === 400) {
+      const data = error.response.data;
+      if (data.email && data.email.includes('already exists')) {
+        const err = new Error('Email already registered');
+        err.code = 'DUPLICATE_EMAIL';
+        throw err;
+      }
+    }
+    throw new Error(extractErrorMessage(error));
+  }
 };
 
 export const logout = async () => {
-  // return axiosInstance.post(ENDPOINTS.LOGOUT).then((res) => res.data);
-
-  await delay(200);
+  localStorage.removeItem(TOKEN_STORAGE_KEY);
+  localStorage.removeItem('refresh_token');
   return { success: true };
 };
