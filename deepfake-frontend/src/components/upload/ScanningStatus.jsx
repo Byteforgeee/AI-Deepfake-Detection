@@ -1,6 +1,6 @@
 import { FiLoader, FiCheckCircle, FiXCircle } from 'react-icons/fi';
 import { SCANNING_STEPS } from '../../hooks/useFileUpload';
-
+import { SCANNING_STEPS } from '../../constants/scanningSteps';
 // Animated dots component
 const AnimatedDots = () => (
   <span className="inline-flex gap-1">

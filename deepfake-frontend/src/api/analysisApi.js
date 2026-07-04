@@ -24,6 +24,9 @@ export const getStatus = async (analysisId) => {
   return response.data;
 };
 
+// Alias for consistency
+export const getAnalysis = getStatus;
+
 export const getHistory = async () => {
   const response = await axiosInstance.get('/analysis/history/');
   return response.data;

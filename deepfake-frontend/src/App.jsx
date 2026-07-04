@@ -6,11 +6,12 @@ import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import SignUpPage from "./pages/SignUpPage";
 import DashboardPage from "./pages/DashboardPage";
+import AnalysisVisualsPage from "./pages/AnalysisVisualsPage";
 
 export default function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
+      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route
@@ -34,6 +35,14 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <DashboardPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/analysis/:id"
+            element={
+              <ProtectedRoute>
+                <AnalysisVisualsPage />
               </ProtectedRoute>
             }
           />

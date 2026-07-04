@@ -8,13 +8,14 @@ html,
 body,
 #root {
   height: 100%;
+  scroll-behavior: smooth;
 }
 
 body {
   @apply bg-base-950 text-ink-100 font-body antialiased;
 }
 
-/* Subtle grid texture used behind the auth card */
+/* Subtle grid texture */
 .grid-texture {
   background-image:
     linear-gradient(to right, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
@@ -22,10 +23,104 @@ body {
   background-size: 40px 40px;
 }
 
-/* Respect reduced-motion preference */
+/* Custom animations */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.05); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scan-line {
+  0% { top: 0; }
+  100% { top: 100%; }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    rgba(255, 255, 255, 0.1) 20%, 
+    transparent 40%
+  );
+  background-size: 200% auto;
+  animation: shimmer 3s linear infinite;
+}
+
+.animate-scan {
+  animation: scan-line 2s linear infinite;
+}
+
+.animate-fade-up {
+  opacity: 0;
+  animation: fade-up 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.animate-fade-in {
+  opacity: 0;
+  animation: fade-in 0.6s ease-out forwards;
+}
+
+/* Stagger delays */
+.delay-100 { animation-delay: 0.1s; }
+.delay-200 { animation-delay: 0.2s; }
+.delay-300 { animation-delay: 0.3s; }
+.delay-400 { animation-delay: 0.4s; }
+.delay-500 { animation-delay: 0.5s; }
+
+/* Card 3D tilt (hover) */
+.card-3d {
+  transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+}
+.card-3d:hover {
+  transform: perspective(800px) rotateX(2deg) rotateY(2deg) scale(1.02);
+  box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.6);
+}
+
+/* Glassmorphism */
+.glass {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* Respect reduced motion */
 @media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
   .animate-scan,
-  .animate-pulseGlow {
+  .animate-float,
+  .animate-pulse-glow,
+  .animate-shimmer {
     animation: none !important;
   }
 }

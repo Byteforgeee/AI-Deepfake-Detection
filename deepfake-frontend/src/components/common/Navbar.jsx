@@ -3,6 +3,10 @@ import { FiShield } from "react-icons/fi";
 import { useAuth } from "../../hooks/useAuth";
 import Button from "./Button";
 
+<nav className="sticky top-0 z-50 border-b border-base-700 bg-base-950/80 backdrop-blur-sm">
+  ...
+</nav>
+
 export default function Navbar() {
   const { user, isAuthenticated, logout } = useAuth();
 
@@ -47,4 +51,5 @@ export default function Navbar() {
       </div>
     </nav>
   );
+  
 }
