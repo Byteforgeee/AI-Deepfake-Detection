@@ -50,7 +50,7 @@ The main objective of this project is to develop an accessible platform that can
 
 ### Database
 
-- MongoDB
+- PostgreSQL
 
 ### Development Tools
 
@@ -152,10 +152,11 @@ npm run dev
 
 ## Team Members
 
+- Sunil Giri
 - Ankit Katwal
 - Bhupesh Bhatt
 - Lalit Nath
-- Sunil Giri
+
 
 ---
 
